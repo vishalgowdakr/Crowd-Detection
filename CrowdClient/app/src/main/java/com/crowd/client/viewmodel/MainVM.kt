@@ -82,10 +82,10 @@ class MainVM: ViewModel(), MainApplication.AppCompanion {
 
                     coScope.launch {
                         estimationResult = processQuery(queryLastMade)
-                        delay(2000)
+                        delay(1000)
                         isWaitingForResult = false
                         if(estimationResult is EstSuccess) {
-                            delay(1500)
+                            delay(1000)
                             onFragment = Fragment.ResultPage
                         }
                     }
@@ -124,8 +124,8 @@ class MainVM: ViewModel(), MainApplication.AppCompanion {
                             println("$idx: $crowdAt")
                             try{
                                 val crowdAcc = ((crowdAt)[0] as Double).toInt()
-                                if(idx < 10 && crowdAcc == 1) {
-                                    val avgCrowd = ((crowdAt)[5] as Double).toFloat()
+                                val avgCrowd = ((crowdAt)[5] as Double).toFloat()
+                                if(idx < 4 && crowdAcc >= 1) {
                                     if (avgCrowd < shTrmLeastCrowdIs) {
                                         shTrmLeastCrowdIs = avgCrowd
                                         val divTime = str2Time(crowdAt[1] as String)!!
@@ -133,12 +133,9 @@ class MainVM: ViewModel(), MainApplication.AppCompanion {
                                         tripleData = Triple(divTime, avgCrowd, nRecordTime)
                                     }
                                 }
-                                if(crowdAcc == 1) {
-                                    val avgCrowd = ((crowdAt)[5] as Double).toFloat()
-                                    if(avgCrowd < oAllLeastCrowdIs) {
-                                        oAllLeastCrowdAt = idx
-                                        oAllLeastCrowdIs = avgCrowd
-                                    }
+                                if(crowdAcc >= 1 && avgCrowd < oAllLeastCrowdIs) {
+                                    oAllLeastCrowdAt = idx
+                                    oAllLeastCrowdIs = avgCrowd
                                 }
                             }
                             catch (e: Exception) { e.printStackTrace() }
@@ -171,7 +168,10 @@ class MainVM: ViewModel(), MainApplication.AppCompanion {
                             val queryTime = Date(query.timeInMillis)
                             val photoTime = str2Time(recordTime)!!
                             val picDesc = "${query.place} at ${time2OtStr(photoTime)}"
-                            if(queryTime.date == photoTime.date && queryTime.hours == photoTime.hours) return EstSuccess(
+                            if(
+//                                queryTime.date == photoTime.date &&
+                                queryTime.hours == photoTime.hours
+                            ) return EstSuccess(
                                 query, BitPicOfPlace(nowPhoto.asImageBitmap(), picDesc),
                                 crowdInPhoto, crowdStatus, time2Go,
                                 time2HtStr(oAllLeastCrowdDiv),

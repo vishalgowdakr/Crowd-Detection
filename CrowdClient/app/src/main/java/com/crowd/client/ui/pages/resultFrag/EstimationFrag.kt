@@ -37,7 +37,7 @@ import com.crowd.client.viewmodel.ResPicOfPlace
 fun EstimationFrag(
     modifier: Modifier = Modifier,
     estRes: EstSuccess = EstSuccess(),
-//    picData: PicOfPlace = PicOfPlace(R.drawable.t1, "GJB Cafe at 10pm"),
+//    picData: PicOfPlace = PicOfPlace(R.drawable.t1, "Acharya Canteen at 10pm"),
 //    crowdIs: String = "low",
 //    timeToGo: String = "5:30pm",
 //    leastCrowdAt: String = "9am",
@@ -166,11 +166,11 @@ fun EstimationFrag(
 
             Text(
                 text = buildAnnotatedString {
-                    append("And, According to the Overall Average Estimation ")
+                    append("And, ")
                     withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
                         append(estRes.leastCrowdAt)
                     }
-                    append(" is the time to Visit!")
+                    append(" is the Average time with \nLeast Crowd on any given day!")
                 },
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,

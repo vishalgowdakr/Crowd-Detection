@@ -99,7 +99,7 @@ fun AppSelectorDialog(
 private fun Preview() {
     CrowdClientTheme {
         AppSelectorDialog(
-            options = listOf("GJB Cafe", "Acharya Canteen", "Bangalore")
+            options = listOf("Acharya Canteen", "Bangalore")
         )
     }
 }

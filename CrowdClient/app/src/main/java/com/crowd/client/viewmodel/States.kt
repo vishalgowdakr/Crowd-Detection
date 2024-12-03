@@ -10,7 +10,7 @@ interface PicType {
 }
 data class ResPicOfPlace(
     @DrawableRes val image: Int = R.drawable.t1,
-    override val picDescription: String = "GJB Cafe at 10pm"
+    override val picDescription: String = "Acharya Canteen at 10pm"
 ): PicType
 @Stable
 data class BitPicOfPlace(
@@ -46,7 +46,7 @@ data class Query(
 ) {
     companion object {
         fun fromTime(
-            place: String = "GJB Cafe",
+            place: String = "No Location Available",
             time: Long = System.currentTimeMillis()
         ): Query {
             val date = java.util.Date(time)

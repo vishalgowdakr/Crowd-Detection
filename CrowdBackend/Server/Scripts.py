@@ -1,6 +1,6 @@
 import os
 import random
-from cv2 import imwrite
+from cv2 import imwrite, imread
 from datetime import datetime, timedelta
 from shutil import copy2
 from CrowdDetector import CrowdDetector, crowdDetector
@@ -35,13 +35,13 @@ def insertMockData(database, recordCount=5000):
         message = f"Mock message at {location}"
         testImagesLen = len(testImages)
         # imagePath = random.choice(testImages)
-        testImageChosen = random.randint(0, testImagesLen * 2)
+        # testImageChosen = random.randint(0, testImagesLen * 2)
         crowdCount = random.randint(0, 30)  # Random crowd count between 10 and 100
 
         # Random time within the past week
-        randomDays = random.randint(0, 1)
+        randomDays = random.randint(0, 10)
         randomMinutes = random.randint(0, 1440)  # random minute in a day
-        randomTime = datetime.now() + timedelta(days=randomDays, minutes=randomMinutes)
+        randomTime = datetime.now() - timedelta(days=randomDays, minutes=randomMinutes)
         atTimeStr = time2Str(randomTime)
 
         # Insert the record into the Record table
@@ -51,10 +51,11 @@ def insertMockData(database, recordCount=5000):
             if not os.path.exists(locPath): os.makedirs(locPath)
             photoPath = f"{DataManager.databaseDir}/{location}/{atTimeStr}.jpg"
             # copy2(imagePath, photoPath)
-            if testImageChosen < testImagesLen:
-                imgType = testImages[testImageChosen]
-                crowdCount = testImageCrowd[testImageChosen]
-            else: imgType = "blue" if i%2==0 else "red"
+            # if testImageChosen < testImagesLen:
+            #     imgType = testImages[testImageChosen]
+            #     crowdCount = testImageCrowd[testImageChosen]
+            # else:
+            imgType = "random" #"blue" if i%2==0 else "red"
             image = stampImage(
                 imgType, AtLocation=location, AtTime=atTimeStr,
                 CrowdCount=crowdCount
@@ -88,7 +89,12 @@ def insertFromDir(database, insertDir=DatabaseInsertDir):
                 locPath = f"{DataManager.databaseDir}/{location}"
                 if not os.path.exists(locPath): os.makedirs(locPath)
                 photoPath = f"{DataManager.databaseDir}/{location}/{imageTime}.jpg"
-                copy2(imagePath, photoPath)
+                image = stampImage(
+                    imagePath, AtLocation=location,
+                    AtTime=imageTimeStr,CrowdCount=crowdCount
+                )
+                imwrite(photoPath, image)
+                # copy2(imagePath, photoPath)
 
                 database.insertRecord(
                     location, imageTimeStr, "admin@crowd.com", "Insert from Dir",
@@ -104,7 +110,6 @@ def insertFromDir(database, insertDir=DatabaseInsertDir):
 if __name__ == "__main__":
     dataManager = DataManager()
     insertFromDir(dataManager)
-
 
     # # Insert mock data
     # insertMockLocation(dataManager)

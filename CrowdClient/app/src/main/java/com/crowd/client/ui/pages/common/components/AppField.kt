@@ -281,7 +281,7 @@ private fun Preview() {
             Arrangement.spacedBy(10.dp), Alignment.CenterHorizontally
         ) {
             Box {
-                val options = listOf("GJB Cafe", "Bangalore Palace", "Acharya Canteen", "TN Sathankulam")
+                val options = listOf("Acharya Canteen", "Bangalore Palace", "Acharya Canteen", "TN Sathankulam")
                 var value by remember { mutableStateOf(0) }
                 AppSelectorField(
                     label = "Place", value = options.getOrElse(value) {

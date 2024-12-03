@@ -284,26 +284,35 @@ class DataManager:
                           .total_seconds())
         nearTimeDaySec = int(nearTimeDaySec)
         nearTimeInDiv = nearTimeDaySec // divTimeDelta
+        nearTimeWeekDay = (time.isoweekday()) % 7
         try:
             # Query for records within 30 minutes before and after the given time
-            query = f"""
-                Select 
-                    {sqlTimeInSec('atTime')}/1, PhotoPath, crowdCount,
-                     MIN(ABS({sqlSecOfDay('atTime')} - {nearTimeDaySec}))
-                From Record Where location = '{location}' 
-                And {sqlOnlyDate('atTime')} = {sqlOnlyDate(f"'{timeStr}'")}
-                And {sqlSecOfDay('atTime')}/{divTimeDelta} = {nearTimeInDiv}
-                And PhotoPath != ''
-                -- Group by {sqlSecOfDay('atTime')}/{divTimeDelta}
-                -- Having {sqlSecOfDay('atTime')}/{divTimeDelta} = {nearTimeInDiv}
-            ;"""
-            self.cursor.execute(query)
-            queryRes = self.cursor.fetchone()
-            # print(queryRes)
-            if queryRes and any(queryRes):
-                atTime, photoPath, count, withGap = queryRes
-                timeOfRecord = dt.fromtimestamp(atTime) - TimeZoneDrift
-                return 1, timeOfRecord, photoPath, count
+            for queryAcc in range(3):
+                typeCondition = ""
+                if queryAcc == 0:
+                    typeCondition = f"And {sqlOnlyDate('atTime')} = {sqlOnlyDate(f"'{timeStr}'")}"
+                elif queryAcc == 1:
+                    typeCondition = f"And strftime('%w', {'atTime'}) = '{nearTimeWeekDay}'"
+
+                query = f"""
+                    Select 
+                        {sqlTimeInSec('atTime')}/1, PhotoPath, crowdCount,
+                         MIN(ABS({sqlSecOfDay('atTime')} - {nearTimeDaySec}))
+                    From Record Where location = '{location}' {typeCondition}
+                    And strftime('%k', {'atTime'})/1 = {time.hour}
+                    -- And {sqlOnlyDate('atTime')} = {sqlOnlyDate(f"'{timeStr}'")}
+                    -- And {sqlSecOfDay('atTime')}/{divTimeDelta} = {nearTimeInDiv}
+                    And PhotoPath != ''
+                    -- Group by {sqlSecOfDay('atTime')}/{divTimeDelta}
+                    -- Having {sqlSecOfDay('atTime')}/{divTimeDelta} = {nearTimeInDiv}
+                ;"""
+                self.cursor.execute(query)
+                queryRes = self.cursor.fetchone()
+                # print(queryRes, time.hour)
+                if queryRes and any(queryRes):
+                    atTime, photoPath, count, withGap = queryRes
+                    timeOfRecord = dt.fromtimestamp(atTime) - TimeZoneDrift
+                    return 1, timeOfRecord, photoPath, count
             # Error No Enough Records to Analyze
             return (0,)
         except sqlite3.Error as e:

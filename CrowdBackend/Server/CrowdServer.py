@@ -175,7 +175,7 @@ class GetPhotoNear(Resource):
                     if photoPath: message = "Can't find Photo!"
                     else: message = "Done with no Photo!"
                 data = {"accCode": resCode, "recordTime": time2Str(recordTime), "photo": encodedPhoto, "crowdInPhoto": crowdCount}
-            # print(atLocation, status, message, error)
+            # print(atLocation, status, message, error, data)
             return fixAndRespond(status, message, error, data)
         except Exception as e:
             # e.with_traceback()
@@ -224,7 +224,7 @@ class GetCrowdSeq(Resource):
                 else:
                     status, message = 200, "Done!"
                 data = {"crowdAtSeq": processedSeq}
-            # print(atLocation, status, message, error)
+            # print(atLocation, status, message, error, data)
             return fixAndRespond(status, message, error, data)
         except Exception as e:
             e.with_traceback()

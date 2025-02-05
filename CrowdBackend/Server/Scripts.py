@@ -1,8 +1,9 @@
 import os
+import cv2
 import random
 from cv2 import imwrite, imread
-from datetime import datetime, timedelta
-from shutil import copy2
+from datetime import datetime as dt, timedelta
+from CrowdBackend.Api.CrowdApi import CrowdApi
 from CrowdDetector import CrowdDetector, crowdDetector
 from CrowdBackend import TestImageDir, DatabaseInsertDir
 from CrowdBackend.Server.DataManager import DataManager
@@ -41,7 +42,7 @@ def insertMockData(database, recordCount=5000):
         # Random time within the past week
         randomDays = random.randint(0, 10)
         randomMinutes = random.randint(0, 1440)  # random minute in a day
-        randomTime = datetime.now() - timedelta(days=randomDays, minutes=randomMinutes)
+        randomTime = dt.now() - timedelta(days=randomDays, minutes=randomMinutes)
         atTimeStr = time2Str(randomTime)
 
         # Insert the record into the Record table
@@ -104,12 +105,43 @@ def insertFromDir(database, insertDir=DatabaseInsertDir):
             except Exception as e:
                 print(e)
 
+def insertFromCamera(api=None, location="Acharya CSE", fromMail="Unknown@gmail.com", interval=1):
+    cam = cv2.VideoCapture(0)
+    nextPostAt = 0
+    if api is None: api = CrowdApi()
+    api.createLocationRes(location, "Heseragatta")
+    while True:
+        now = dt.now().timestamp()
+        if now < nextPostAt: continue
+
+        ret, frame = cam.read()
+        # Display the captured frame
+
+        timeNow = time2Str(dt.now())
+        imagePath = f"ToServer/{timeNow}.jpg"
+        imwrite(imagePath, frame)
+        cv2.imshow('Camera', frame)
+        nextPostAt = now + interval
+
+        api.postCrowdAtRes(
+            location, timeNow, fromMail, "", imagePath, -1,
+            title=f"Inserting($timeNow)", expCodes=202
+        )
+        # Press 'q' to exit the loop
+        if cv2.waitKey(1) == ord('q'):
+            break
+
 
 
 
 if __name__ == "__main__":
     dataManager = DataManager()
-    insertFromDir(dataManager)
+
+    api = CrowdApi()
+    insertFromCamera()
+
+    # # Insert from DIr
+    #insertFromDir(dataManager)
 
     # # Insert mock data
     # insertMockLocation(dataManager)

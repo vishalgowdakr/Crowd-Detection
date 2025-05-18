@@ -28,8 +28,8 @@ def insertMockLocation(database):
         database.insertLocation(place[0], place[1])
 
 
-testImages = [f"{TestImageDir}/{images}" for images in os.listdir(TestImageDir)]
-testImageCrowd = [20, 18, 19, 14]
+# testImages = [f"{TestImageDir}/{images}" for images in os.listdir(TestImageDir)]
+# testImageCrowd = [20, 18, 19, 14]
 
 
 def insertMockData(database, recordCount=5000):

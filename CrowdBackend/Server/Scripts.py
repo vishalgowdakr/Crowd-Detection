@@ -18,23 +18,26 @@ emails = [
     "user2@example.com",
     "user3@example.com",
     "user4@example.com",
-    "user5@example.com"
+    "user5@example.com",
 ]
+
 
 def insertMockLocation(database):
     # Insert mock places into the Location table
     for place in places:
         database.insertLocation(place[0], place[1])
 
+
 testImages = [f"{TestImageDir}/{images}" for images in os.listdir(TestImageDir)]
 testImageCrowd = [20, 18, 19, 14]
+
+
 def insertMockData(database, recordCount=5000):
     # Generate and insert 50 mock records
     for i in range(recordCount):
         location = random.choice(places)[0]
         fromEmail = random.choice(emails)
         message = f"Mock message at {location}"
-        testImagesLen = len(testImages)
         # imagePath = random.choice(testImages)
         # testImageChosen = random.randint(0, testImagesLen * 2)
         crowdCount = random.randint(0, 30)  # Random crowd count between 10 and 100
@@ -49,21 +52,25 @@ def insertMockData(database, recordCount=5000):
         print(f"Inserting #{i}: {location}")
         try:
             locPath = f"{DataManager.databaseDir}/{location}"
-            if not os.path.exists(locPath): os.makedirs(locPath)
+            if not os.path.exists(locPath):
+                os.makedirs(locPath)
             photoPath = f"{DataManager.databaseDir}/{location}/{atTimeStr}.jpg"
             # copy2(imagePath, photoPath)
             # if testImageChosen < testImagesLen:
             #     imgType = testImages[testImageChosen]
             #     crowdCount = testImageCrowd[testImageChosen]
             # else:
-            imgType = "random" #"blue" if i%2==0 else "red"
+            imgType = "random"  # "blue" if i%2==0 else "red"
             image = stampImage(
-                imgType, AtLocation=location, AtTime=atTimeStr,
-                CrowdCount=crowdCount
+                imgType, AtLocation=location, AtTime=atTimeStr, CrowdCount=crowdCount
             )
             imwrite(photoPath, image)
-            database.insertRecord(location, atTimeStr, fromEmail, message, photoPath, crowdCount)
-        except Exception as e: print(f"ErrorOn #{i}: {e}")
+            database.insertRecord(
+                location, atTimeStr, fromEmail, message, photoPath, crowdCount
+            )
+        except Exception as e:
+            print(f"ErrorOn #{i}: {e}")
+
 
 def insertFromDir(database, insertDir=DatabaseInsertDir):
     for location in os.listdir(insertDir):
@@ -72,47 +79,62 @@ def insertFromDir(database, insertDir=DatabaseInsertDir):
         database.insertLocation(location, "Insert from Dir")
         for image in os.listdir(locDir):
             try:
-                if not image.endswith(".jpeg"): continue
+                if not image.endswith(".jpeg"):
+                    continue
                 if image.count(".") == 1:
                     imageTimeStr = image.strip().split(".")[0]
                     crowdCount = -1
                 elif image.count(".") == 2:
                     imageTimeStr, crowdCount, _ = image.strip().split(".")
                     crowdCount = int(crowdCount)
-                else: continue
+                else:
+                    continue
 
                 imageTime = str2Time(imageTimeStr)
-                if not imageTime: return
+                if not imageTime:
+                    return
                 imagePath = f"{locDir}/{image}"
                 if crowdCount < 0:
                     crowdCount = len(crowdDetector.detectFromPath(imagePath))
 
                 locPath = f"{DataManager.databaseDir}/{location}"
-                if not os.path.exists(locPath): os.makedirs(locPath)
+                if not os.path.exists(locPath):
+                    os.makedirs(locPath)
                 photoPath = f"{DataManager.databaseDir}/{location}/{imageTime}.jpg"
                 image = stampImage(
-                    imagePath, AtLocation=location,
-                    AtTime=imageTimeStr,CrowdCount=crowdCount
+                    imagePath,
+                    AtLocation=location,
+                    AtTime=imageTimeStr,
+                    CrowdCount=crowdCount,
                 )
                 imwrite(photoPath, image)
                 # copy2(imagePath, photoPath)
 
                 database.insertRecord(
-                    location, imageTimeStr, "admin@crowd.com", "Insert from Dir",
-                    photoPath, crowdCount
+                    location,
+                    imageTimeStr,
+                    "admin@crowd.com",
+                    "Insert from Dir",
+                    photoPath,
+                    crowdCount,
                 )
                 print(f"    Inserted {location}/{imageTimeStr}")
             except Exception as e:
                 print(e)
 
-def insertFromCamera(api=None, location="Acharya CSE", fromMail="Unknown@gmail.com", interval=1):
+
+def insertFromCamera(
+    api=None, location="Acharya CSE", fromMail="Unknown@gmail.com", interval=1
+):
     cam = cv2.VideoCapture(0)
     nextPostAt = 0
-    if api is None: api = CrowdApi()
+    if api is None:
+        api = CrowdApi()
     api.createLocationRes(location, "Heseragatta")
     while True:
         now = dt.now().timestamp()
-        if now < nextPostAt: continue
+        if now < nextPostAt:
+            continue
 
         ret, frame = cam.read()
         # Display the captured frame
@@ -120,30 +142,34 @@ def insertFromCamera(api=None, location="Acharya CSE", fromMail="Unknown@gmail.c
         timeNow = time2Str(dt.now())
         imagePath = f"ToServer/{timeNow}.jpg"
         imwrite(imagePath, frame)
-        cv2.imshow('Camera', frame)
+        cv2.imshow("Camera", frame)
         nextPostAt = now + interval
 
         api.postCrowdAtRes(
-            location, timeNow, fromMail, "", imagePath, -1,
-            title=f"Inserting($timeNow)", expCodes=202
+            location,
+            timeNow,
+            fromMail,
+            "",
+            imagePath,
+            -1,
+            title=f"Inserting($timeNow)",
+            expCodes=202,
         )
         # Press 'q' to exit the loop
-        if cv2.waitKey(1) == ord('q'):
+        if cv2.waitKey(1) == ord("q"):
             break
-
-
 
 
 if __name__ == "__main__":
     dataManager = DataManager()
 
     api = CrowdApi()
-    insertFromCamera()
+    # insertFromCamera()
 
     # # Insert from DIr
-    #insertFromDir(dataManager)
+    # insertFromDir(dataManager)
 
     # # Insert mock data
-    # insertMockLocation(dataManager)
-    # insertMockData(dataManager, 3000)
+    insertMockLocation(dataManager)
+    insertMockData(dataManager, 3000)
     dataManager.closeConnection()

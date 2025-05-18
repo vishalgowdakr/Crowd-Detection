@@ -1,2 +1,4 @@
 *.bat
 .idea
+venv/
+*/__pycache__/
